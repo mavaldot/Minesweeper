@@ -170,14 +170,17 @@ public class Buscaminas {
 		
 		case PRINCIPIANTE:
 		casillas = new Casilla[FILAS_PRINCIPIANTE][COLUMNAS_PRINCIPIANTE];
+		cantidadMinas = CANTIDAD_MINAS_PRINCIPANTE;
 		break;
 		
 		case INTERMEDIO:
 		casillas = new Casilla[FILAS_INTERMEDIO][COLUMNAS_INTERMEDIO];
+		cantidadMinas = CANTIDAD_MINAS_INTERMEDIO;
 		break;
 			
 		case EXPERTO:
 		casillas = new Casilla[FILAS_EXPERTO][COLUMNAS_EXPERTO];
+		cantidadMinas = CANTIDAD_MINAS_EXPERTO;
 		break;
 			
 		
@@ -253,24 +256,6 @@ public class Buscaminas {
 	 * Método que se encarga de generar aleatoriomente las minas
 	 */
 	public void generarMinas() {
-		
-		switch(nivel) {
-		
-		case PRINCIPIANTE:
-			
-		cantidadMinas = CANTIDAD_MINAS_PRINCIPANTE;
-		break;
-		
-		case INTERMEDIO:
-			
-		cantidadMinas = CANTIDAD_MINAS_INTERMEDIO;
-		break;
-		
-		case EXPERTO:
-		
-		cantidadMinas = CANTIDAD_MINAS_EXPERTO;
-		break;
-		}
 		
 		for(int i = 0; i < cantidadMinas; i++) {
 			
@@ -373,7 +358,6 @@ public class Buscaminas {
 		} catch (IndexOutOfBoundsException iobException) {
 			success = false;
 		}
-
 		
 		return success;
 	}
