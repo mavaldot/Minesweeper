@@ -233,6 +233,13 @@ public class Buscaminas {
 		return minas;
 	}
 	
+	/**
+	 * Checks to see if there is a mine in the specificed location
+	 * 
+	 * @param i The row number
+	 * @param j The column number
+	 * @return 1 if there's a mine, 0 if there is not or if the box is null or out of bounds
+	 */
 	public int checkMine(int i, int j) {
 		
 		int value;
@@ -442,6 +449,10 @@ public class Buscaminas {
 		return msg;
 	}
 	
+	/**
+	 * 
+	 * @return la cantidad de minas
+	 */
 	public int getCantidadMinas() {
 		return cantidadMinas;
 	}
