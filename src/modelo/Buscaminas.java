@@ -114,6 +114,8 @@ public class Buscaminas {
 		this.nivel = nivel;
 		perdio = false;
 		inicializarPartida();
+		generarMinas();
+		inicializarCasillasLibres();
 
 	}
 
@@ -144,8 +146,7 @@ public class Buscaminas {
 		
 		}
 		
-		inicializarCasillasLibres();
-
+		
 	}
 
 
@@ -154,12 +155,16 @@ public class Buscaminas {
 	 */
 	public void inicializarCasillasLibres() {
 
-		int filas = casillas.length;
-		int columnas = casillas[0].length;
+		int rows = casillas.length;
+		int columns = casillas[0].length;
 		
-		for(int i = 0; i < filas; i++) {
-			for(int j = 0; j < columnas; j++) {
-				casillas[i][j] = new Casilla(Casilla.LIBRE);
+		for(int i = 0; i < rows; i++) {
+			for(int j = 0; j < columns; j++) {
+				if(casillas[i][j] == null) {
+					casillas[i][j] = new Casilla(Casilla.LIBRE);
+					casillas[i][j].modificarValor(cantidadMinasAlrededor(i,j));
+				}
+				
 			}
 		}
 
@@ -193,12 +198,14 @@ public class Buscaminas {
 		int value;
 		
 		try {
-			if(casillas[i][j].darValor() == Casilla.MINA) {
+			if(casillas[i][j].esMina()) {
 				value = 1;
 			} else {
 				value = 0;
 			}
 		} catch (IndexOutOfBoundsException iobException) {
+			value = 0;
+		} catch (NullPointerException npException) {
 			value = 0;
 		}
 		
@@ -209,28 +216,26 @@ public class Buscaminas {
 	 * Método que se encarga de generar aleatoriomente las minas
 	 */
 	public void generarMinas() {
-
-		int numMinas = 0;
 		
 		switch(nivel) {
 		
 		case PRINCIPIANTE:
 			
-		numMinas = CANTIDAD_MINAS_PRINCIPANTE;
+		cantidadMinas = CANTIDAD_MINAS_PRINCIPANTE;
 		break;
 		
 		case INTERMEDIO:
 			
-		numMinas = CANTIDAD_MINAS_INTERMEDIO;
+		cantidadMinas = CANTIDAD_MINAS_INTERMEDIO;
 		break;
 		
 		case EXPERTO:
 		
-		numMinas = CANTIDAD_MINAS_EXPERTO;
+		cantidadMinas = CANTIDAD_MINAS_EXPERTO;
 		break;
 		}
 		
-		for(int i = 0; i < numMinas; i++) {
+		for(int i = 0; i < cantidadMinas; i++) {
 			
 			boolean placed = false;
 			
@@ -239,8 +244,8 @@ public class Buscaminas {
 				int x = (int) (Math.random() * casillas.length);
 				int y = (int) (Math.random() * casillas[0].length);
 				
-				if(casillas[x][y].darValor() != Casilla.MINA) {
-					casillas[x][y].modificarValor(Casilla.MINA);
+				if(casillas[x][y] == null) {
+					casillas[x][y] = new Casilla(Casilla.MINA);
 					placed = true;
 				}
 				
@@ -264,14 +269,23 @@ public class Buscaminas {
 		
 		board += "   ";
 		
+		String espacio = "  ";
+		
 		for(int j = 1; j < columns + 1; j++) {
-			board += j + "  ";
+			if(j > 9) {
+				espacio = " ";
+			}
+			board += j + espacio;
 		}
 		
 		board += "\n";
+		espacio = "  ";
 		
 		for(int i = 0; i < rows; i++) {
-			board += (i+1) + "  ";
+			if(i > 8) {
+				espacio = " ";
+			}
+			board += (i+1) + espacio;
 			for(int j = 0; j < columns; j++) {
 				board += casillas[i][j].mostrarValorCasilla() + "  ";
 			}
@@ -286,7 +300,14 @@ public class Buscaminas {
 	 */
 	public void resolver() {
 
-		// TODO
+		int rows = casillas.length;
+		int columns = casillas[0].length;
+		
+		for(int i = 0; i < rows; i++) {
+			for(int j = 0; j < columns; j++) {
+				abrirCasilla(i,j);
+			}
+		}
 
 	}
 
@@ -298,7 +319,28 @@ public class Buscaminas {
 		return casillas;
 	}
 
+	public boolean createCasilla(int i, int j, int type) throws IllegalBoxValueException {
+		
+		boolean success;
+		
+		if(type != Casilla.LIBRE && type != Casilla.MINA)
+			throw new IllegalBoxValueException("No fue posible modificar la casilla!");
+		
+		try {
+			if(casillas[i][j] == null) {
+				casillas[i][j] = new Casilla(type);
+				success = true;
+			} else {
+				success = false;
+			}
+		} catch (IndexOutOfBoundsException iobException) {
+			success = false;
+		}
 
+		
+		return success;
+	}
+	
 	/**
 	 * Este metodo se encargaa de abrir una casilla
 	 * Si se abre una casilla de tipo Mina, se marca que el jugador perdio el juego.
@@ -311,11 +353,12 @@ public class Buscaminas {
 		boolean success;
 		
 		if(casillas[i][j].darSeleccionada()) {
-			
-			success = true;
-			
-		} else {
 			success = false;
+		} else {
+			casillas[i][j].destapar();
+			if(casillas[i][j].esMina())
+				perdio = true;
+			success = true;
 		}
 		
 		return success;
@@ -327,8 +370,27 @@ public class Buscaminas {
 	 * @return boolean - true si gano el juego, false en caso contrario
 	 */
 	public boolean gano() {
-		// TODO
-		return true;
+		
+		boolean gano = false;
+		
+		int rows = casillas.length;
+		int columns = casillas[0].length;
+		
+		int totalBoxes = rows * columns;
+		
+		int totalSelected = 0;
+		
+		for(int i = 0; i < rows; i++) {
+			for(int j = 0; j < columns; j++) {
+				if(casillas[i][j].darSeleccionada())
+					totalSelected++;
+			}
+		}
+		
+		if(totalSelected + cantidadMinas == totalBoxes)
+			gano = true;
+
+		return gano;
 	}
 
 
@@ -338,8 +400,25 @@ public class Buscaminas {
 	 */
 	public String darPista() {
 
-		// TODO
-		return null;
+		String msg = "No hay pistas para dar\n";
+		
+		int rows = casillas.length;
+		int columns = casillas[0].length;
+		
+		boolean found = false;
+		
+		for(int i = 0; i < rows && !found; i++) {
+			for(int j = 0; j < columns && !found; j++) {
+				if(casillas[i][j].darValor() > 0 && !casillas[i][j].darSeleccionada()) {
+					found = true;
+					msg = "Se ha abierto la casilla " + (i+1) + "," + (j+1) + "\n";
+					abrirCasilla(i,j);
+					
+				}
+			}
+		}
+
+		return msg;
 	}
 	
 	/***
