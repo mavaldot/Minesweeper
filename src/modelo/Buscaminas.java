@@ -116,8 +116,45 @@ public class Buscaminas {
 		inicializarPartida();
 		generarMinas();
 		inicializarCasillasLibres();
-
 	}
+	
+	/**
+	 * Buscaminas class - Constructor overload method that specifies whether the 
+	 * game will generate the mines and free boxes automatically
+	 * 
+	 * @param nivel The difficulty level 
+	 * @param mode The mode of the game 
+	 * @throws IllegalModeException 
+	 */
+	public Buscaminas(int nivel, int mode) throws IllegalModeException {
+		this.nivel = nivel;
+		perdio = false;
+		
+
+		switch(mode) {
+		
+		case 1:
+			
+			inicializarPartida();
+			break;
+			
+		case 2:
+			
+			inicializarPartida();
+			generarMinas();
+			break;
+			
+		case 3:
+			inicializarPartida();
+			inicializarCasillasLibres();
+			break;
+			
+		default:
+			throw new IllegalModeException();
+		}
+		
+	}
+
 
 
 	// -----------------------------------------------------------------
@@ -419,6 +456,10 @@ public class Buscaminas {
 		}
 
 		return msg;
+	}
+	
+	public int getCantidadMinas() {
+		return cantidadMinas;
 	}
 	
 	/***
